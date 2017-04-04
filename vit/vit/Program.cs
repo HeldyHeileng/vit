@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
 
@@ -15,7 +16,7 @@ namespace vit
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new Form1());
+            Application.Run(new MainForm());
         }
     }
 
@@ -23,6 +24,10 @@ namespace vit
         Empty,
         Player,
         Enemy
+    }
+
+    public class CellTypeProps {
+        public Pen pen { get; set; }    
     }
 
     public class Cell
@@ -51,6 +56,55 @@ namespace vit
         static Stats() {
             EnemySumWeight = 1;
             EnemyCount = 1;
+        }
+    }
+
+    public class Grid
+    {
+        public int height { get; set; }
+        public int width { get; set; }
+        public int cellSize { get; set; }
+        public Graphics graph { get; set; }
+        public List<Cell> cells { get; set; }
+        Dictionary<CellType, Brush> cellTypePens { get; set; }
+
+        Pen pen = Pens.BurlyWood;
+        StringFormat sf = new StringFormat() { LineAlignment = StringAlignment.Center, Alignment = StringAlignment.Center };
+        public Grid(int height, int width, int cellSize, Graphics graph) {
+            this.height = height;
+            this.width = width;
+            this.cellSize = cellSize;
+            this.graph = graph;
+            cells = new List<Cell>();
+            cellTypePens = new Dictionary<CellType, Brush>();
+            cellTypePens.Add(CellType.Enemy, Brushes.PaleVioletRed);
+            cellTypePens.Add(CellType.Player, Brushes.LawnGreen);
+        }
+
+        public void Draw()
+        {
+            // горизонтальные линии
+            for (int i = 1; i < height; i++)
+            {
+                graph.DrawLine(pen, 0, i * cellSize, width * cellSize, i * cellSize);
+            }
+
+            // вертикальные линии
+            for (int i = 1; i < height; i++)
+            {
+                graph.DrawLine(pen, i * cellSize, 0, i * cellSize, height * cellSize);
+            }
+        }
+        public Rectangle getRectangle(int col, int row) {
+            return new Rectangle(col * cellSize, row * cellSize, cellSize, cellSize);
+        }
+
+        public void DrawCells() {
+            foreach (Cell cell in cells) {
+                var rect = getRectangle(cell.col, cell.row);
+                graph.FillEllipse(cellTypePens[cell.type], rect);
+                graph.DrawString(cell.weight.ToString(), new Font(FontFamily.GenericSansSerif, 20), Brushes.Black, rect, sf);                
+            }
         }
     }
 }
